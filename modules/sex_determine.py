@@ -26,6 +26,9 @@ class SexDetermine(ABC):
 
         return sample_x_gene, sample_y_gene
 
+    def save(self, path, data):
+        data.to_csv(path, index=False)
+
     @abstractmethod
     def determine(self, sex_determine_data):
         pass
@@ -35,15 +38,15 @@ class HumanSexDetermine(SexDetermine):
     def __init__(self, x_gene_list=None, y_gene_list=None):
         if x_gene_list is None:
             x_gene_list = pd.read_excel(
-                os.path.join(os.getcwd(), "gene_data", "sex_determine_data", "Homo_sapiens_chrX.xlsx"))
+                os.path.join(os.getcwd(), "gene_data", "sex_determine", "Homo_sapiens_chrX.xlsx"))
         if y_gene_list is None:
             y_gene_list = pd.read_csv(
-                os.path.join(os.getcwd(), "gene_data", "sex_determine_data", "human_Ygenelist.txt"), sep=",")
+                os.path.join(os.getcwd(), "gene_data", "sex_determine", "human_Ygenelist.txt"), sep=",")
         super().__init__(x_gene_list, y_gene_list)
 
     def determine(self, sex_determine_data):
         sample_x_gene, sample_y_gene = self.data_process(sex_determine_data)
-        gender_determine_result = []
+        gender_determine_result = pd.DataFrame(columns=["Sample ID", "Gender"])
 
         for idx in range(sample_x_gene.shape[0]):
             if (sample_y_gene.loc[idx, 'ratioY'] >= 0.001188).all():
@@ -58,7 +61,8 @@ class HumanSexDetermine(SexDetermine):
             else:
                 gender = "unknown"
 
-            gender_determine_result.append(gender)
+            # gender_determine_result.append(gender)
+            gender_determine_result.loc[gender_determine_result.shape[0]] = [sex_determine_data.index[idx], gender]
 
         return gender_determine_result
 
@@ -67,15 +71,15 @@ class MouseSexDetermine(SexDetermine):
     def __init__(self, x_gene_list=None, y_gene_list=None):
         if x_gene_list is None:
             x_gene_list = pd.read_excel(
-                os.path.join(os.getcwd(), "gene_data", "sex_determine_data", "Mus_musculus_chrX.xlsx"))
+                os.path.join(os.getcwd(), "gene_data", "sex_determine", "Mus_musculus_chrX.xlsx"))
         if y_gene_list is None:
             y_gene_list = pd.read_csv(
-                os.path.join(os.getcwd(), "gene_data", "sex_determine_data", "mouse_Ygenelist.txt"), sep=",")
+                os.path.join(os.getcwd(), "gene_data", "sex_determine", "mouse_Ygenelist.txt"), sep=",")
         super().__init__(x_gene_list, y_gene_list)
 
     def determine(self, sex_determine_data):
         sample_x_gene, sample_y_gene = self.data_process(sex_determine_data)
-        gender_determine_result = []
+        gender_determine_result = pd.DataFrame(columns=["Sample ID", "Gender"])
 
         for idx in range(sample_x_gene.shape[0]):
             if (sample_y_gene.loc[idx, 'ratioY'] >= 0.000065).all():
@@ -94,6 +98,7 @@ class MouseSexDetermine(SexDetermine):
             else:
                 gender = "unknown"
 
-            gender_determine_result.append(gender)
+            # gender_determine_result.append(gender)
+            gender_determine_result.loc[gender_determine_result.shape[0]] = [sex_determine_data.index[idx], gender]
 
         return gender_determine_result
