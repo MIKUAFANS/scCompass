@@ -96,32 +96,6 @@ cellranger count \
 
 ---
 
-### 4. Analyze Data with Seurat (R)
-
-Below is the R code for **Seurat** to analyze the scRNA-seq data:
-
-```R
-# Load the Seurat package
-library(Seurat)
-
-# Load data from the output directory
-SRR19908681.data <- Read10X(data.dir = "./outdir(SRR19908681)/outs/filtered_feature_bc_matrix")
-
-# Create a Seurat object
-SRR19908681 <- CreateSeuratObject(counts = SRR19908681.data, project = "SRR19908681", min.cells = 3, min.features = 200)
-
-# Add mitochondrial gene percentage to metadata
-SRR19908681[["percent.mt"]] <- PercentageFeatureSet(SRR19908681, pattern = "^mt-")
-
-# Filter cells: keep cells with >200 genes and <15% mitochondrial content
-SRR19908681 <- subset(SRR19908681, subset = nFeature_RNA > 200 & percent.mt < 15)
-
-# Save RNA counts to a CSV file
-write.csv(SRR19908681@assays$RNA@counts, "SRR19908681_count.csv", row.names = TRUE, quote = FALSE)
-```
-
----
-
 ## III. Summary and Automation
 
 - **Batch processing**: This pipeline can be wrapped into a shell script to handle multiple datasets efficiently.  
