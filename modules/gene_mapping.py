@@ -1,3 +1,4 @@
+import glob
 import os
 import numpy as np
 import pandas as pd
@@ -51,11 +52,12 @@ class GeneMapping:
         """
         specie = kwargs.get('specie')
         output_dir = kwargs.get('output_dir', self.output_dir)
-        count_file = os.path.basename(afile)
+        gsm = os.path.basename(afile).replace(".csv", "")
+        file_dirname = os.path.dirname(afile)
 
-        input_file = f"{afile}/{count_file}.csv"
-        outfile_dir = f"{output_dir}/{specie}/{count_file}/"
-        tmpfile = f"{output_dir}/{specie}/{count_file}.tmp"
+        input_file = f"{file_dirname}/{gsm}.csv"
+        outfile_dir = f"{output_dir}/{specie}/{gsm}/"
+        tmpfile = f"{output_dir}/{specie}/{gsm}.tmp"
         mapping_file = f"{output_dir}/{specie}_mapping.txt"
 
         print(f"Input file: {input_file}")
@@ -116,7 +118,7 @@ class GeneMapping:
         END_TIME = datetime.datetime.now()
         print(f"Data export started. Time cost: {(END_TIME - START_TIME).seconds} seconds")
         np.savetxt(
-            os.path.join(outfile_dir, f"{count_file}.csv"),
+            os.path.join(outfile_dir, f"{gsm}.csv"),
             target_matrix, fmt='%d', delimiter=","
         )
         print(f"Data exported: Rows: {target_matrix.shape[0]}, Columns: {target_matrix.shape[1]}")
