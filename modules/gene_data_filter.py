@@ -1,14 +1,14 @@
+import glob
 import os
 import numpy as np
 import scanpy as sc
 import pandas as pd;
 from scipy.stats import zscore
 
-
 class Filter:
     def __init__(self, ref_path=None, min_cells=3, min_features=200, min_protein_mt_number=6, percent_mt_max=15):
         """
-        Initialize the Filter class with default parameters.
+        Initialize the AnnotationFilter class with default parameters.
         """
         self.ref_path = ref_path
         self.min_cells = min_cells
@@ -17,27 +17,17 @@ class Filter:
         self.percent_mt_max = percent_mt_max
 
         self.latin_maps = {
-            "human": "Homo_sapiens", "mouse": "Mus_musculus", "monkey": "Macaca_mulatta", "zhu": "Sus_scrofa",
-            "dashu": "Rattus_norvegicus", "mianyang": "Ovis_aries", "ji": "Gallus_gallus", "ma": "Equus_caballus",
-            "guoying": "Drosophila_melanogaster", "banmayu": "Danio_rerio", "yang": "Capra_hircus",
-            "xianchong": "Caenorhabditis_elegans", "niu": "Bos_taurus", "quan": "Canis_lupus_familiarisgsd"
+            "human": "Homo_sapiens", "mouse": "Mus_musculus", "monkey": "Macaca_mulatta"
         }
 
     @staticmethod
-    def load_gz_data(in_path):
+    def load_csv_data(in_path):
         """
-        Load data from gzipped files.
+        Load CSV data and convert it to AnnData format.
         """
-        adata = sc.read_mtx(os.path.join(in_path, 'matrix.mtx.gz')).T
-        adata.obs['cell_id'] = pd.read_csv(os.path.join(in_path, 'barcodes.tsv.gz'), header=None)[0].tolist()
-        adata_features = pd.read_csv(os.path.join(in_path, 'features.tsv.gz'), header=None)[0].str.split('\t').str[1]
-        adata.var['gene_name'] = adata_features
-        adata.var.index = adata.var['gene_name']
-
-        adata.obs['n_counts'] = adata.X.sum(axis=1).A1
-        adata.var['n_cells'] = (adata.X > 0).sum(axis=0).A1
-        adata.X = adata.X.A
-        adata.X[np.isnan(adata.X)] = 0
+        df = pd.read_csv(in_path)
+        df = df.rename(columns={'Unnamed: 0': 'cell_id'}).set_index('cell_id').T
+        adata = sc.AnnData(df)
         return adata
 
     def load_gene_name_id_map_dict(self, species_name):
@@ -113,7 +103,8 @@ class Filter:
         specie = kwargs.get('specie')
         species_name = self.latin_maps.get(specie)
         output_dir = kwargs.get('output_dir', os.path.join(os.getcwd(), "filtered_data"))
-        output_dir = os.path.join(output_dir, specie)
+        gsm = os.path.basename(afile).split('_')[0]
+        output_dir = os.path.join(output_dir, specie, gsm)
         tmpfile = os.path.join(output_dir, f"{os.path.basename(afile).split('.')[0]}.tmp")
 
         if os.path.exists(output_dir):
@@ -123,7 +114,7 @@ class Filter:
             return
 
         os.makedirs(output_dir, exist_ok=True)
-        adata = self.load_gz_data(afile)
+        adata = self.load_csv_data(afile)
         gene_map = self.load_gene_name_id_map_dict(species_name)
         protein_list, miRNA_list, mt_list = self.load_special_gene_list(species_name)
 
@@ -132,7 +123,7 @@ class Filter:
         adata = self.filter_gene_variance(adata, mt_list)
 
         df = adata.to_df()
-        df.to_csv(os.path.join(output_dir, f"{specie}_filtered.csv"))
+        df.to_csv(os.path.join(output_dir, f"{gsm}.csv"))
         self.write_logs(output_dir, "7", str(adata.shape[0]), True)
         print(f"Data exported for {afile}")
 
@@ -141,6 +132,7 @@ class Filter:
         Entry function to execute the transform method.
         """
         return self.transform(data, **kwargs)
+        
 
 # if __name__ == "__main__":
 #     m_map = Filter()
