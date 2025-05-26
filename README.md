@@ -148,3 +148,15 @@ write.csv(SRR19908681@assays$RNA@counts, "SRR19908681_count.csv", row.names = TR
 ---
 
 **Note**: This guide provides a complete workflow from data download to analysis. Ensure the integrity of each step by testing with sample data before running on large datasets.
+
+## Citation
+```
+@article{wang2025sccompass,
+  title={scCompass: An Integrated Multi-Species scRNA-seq Database for AI-Ready},
+  author={Wang, Pengfei and Liu, Wenhao and Wang, Jiajia and Liu, Yana and Li, Pengjiang and Xu, Ping and Cui, Wentao and Zhang, Ran and Long, Qingqing and Hu, Zhilong and others},
+  journal={Advanced Science},
+  pages={2500870},
+  year={2025},
+  publisher={Wiley Online Library}
+}
+```
